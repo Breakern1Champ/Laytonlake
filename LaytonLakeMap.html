@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Layton Lake Interactive Map</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map { height: 100vh; } /* Full screen height */
+    </style>
+</head>
+<body>
+    <h1>Layton Lake Interactive Map</h1>
+    <label for="timeInput">Select Time:</label>
+    <input type="time" id="timeInput" value="06:00">
+    <button onclick="highlightAnimals()">Show Animals</button>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Initialize the map with a simple coordinate system
+        var map = L.map('map', {
+            crs: L.CRS.Simple // Simple CRS for images
+        });
+
+        // Dimensions of your map image in pixels
+        var imageWidth = 803; // Replace with actual width of Layton lake bare.jpg
+        var imageHeight = 768; // Replace with actual height of Layton lake bare.jpg
+        var imageBounds = [[0, 0], [imageHeight, imageWidth]];
+
+        // Load the map image
+        L.imageOverlay('Layton lake bare.jpg', imageBounds).addTo(map);
+
+        // Fit the map view to the image bounds
+        map.fitBounds(imageBounds);
+
+        // Sample animal activity data
+        var animals = {
+            "Deer": {
+                "activeHours": ["06:00-09:00", "17:00-20:00"],
+                "locations": [[100, 200], [400, 500]] // Replace with real coordinates
+            },
+            "Bear": {
+                "activeHours": ["18:00-23:59", "00:00-03:00"],
+                "locations": [[300, 300]]
+            }
+        };
+
+        // Function to highlight active animals
+        function highlightAnimals() {
+            // Get the selected time
+            var selectedTime = document.getElementById("timeInput").value;
+
+            // Clear existing markers
+            map.eachLayer(function (layer) {
+                if (layer instanceof L.Marker) {
+                    map.removeLayer(layer);
+                }
+            });
+
+            // Loop through the animal data
+            for (var animal in animals) {
+                var data = animals[animal];
+                var isActive = false;
+
+                // Check if the selected time falls within active hours
+                data.activeHours.forEach(function (timeRange) {
+                    var [start, end] = timeRange.split("-");
+                    if (selectedTime >= start && selectedTime <= end) {
+                        isActive = true;
+                    }
+                });
+
+                // Add markers for active animals
+                if (isActive) {
+                    data.locations.forEach(function (location) {
+                        L.marker(location).addTo(map)
+                            .bindPopup(animal + " is active!")
+                            .openPopup();
+                    });
+                }
+            }
+        }
+    </script>
+</body>
+</html>
